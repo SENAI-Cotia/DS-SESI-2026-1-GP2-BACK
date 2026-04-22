@@ -11,3 +11,75 @@ generator client {
 datasource db {
   provider = "sqlite"
 }
+
+model Funcionario {
+  id     Int           @id @default(autoincrement())
+  nome   String   
+  senha  Int     
+  email  String        @unique
+  departamento String
+}
+
+model Chamado {
+  id            Int       @id @default(autoincrement())
+  titulo        String
+  descricao     String
+  status        Status
+  prioridade    Prioridade
+  dataAbertura  DateTime  @default(now())
+  dataFechamento DateTime?
+
+  categoriaId Int
+  categoria   Categoria @relation(fields: [categoriaId], references: [id])
+  comentarios Comentario[]
+  }
+
+
+model Categoria{
+  id  Int  @id @default(autoincrement())
+  nome String 
+
+  chamados Chamado[]
+}
+
+model Comentario {
+  id   Int  @id    @default(autoincrement())
+  mensagem String  
+  data  DateTime  @default(now())
+
+  chamadoId Int 
+  chamado  Chamado @relation(fields: [chamadoId], references: [id])
+}
+
+model Tecnico {
+  id  Int   @id  @default(autoincrement())
+  nome String
+  status String  
+  habilidades String
+
+
+}
+
+
+
+
+
+
+
+enum Status {
+  ABERTO
+  EM_ANDAMENTO
+  FECHADO
+}
+
+enum Prioridade {
+  BAIXA
+  MEDIA
+  ALTA
+}
+
+enum Role {
+  ADMIN
+  FUNCIONARIO
+  SUPORTE
+}
