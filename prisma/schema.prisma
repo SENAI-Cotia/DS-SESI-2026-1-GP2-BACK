@@ -18,7 +18,7 @@ model Funcionario {
   senha  String  
   email  String        @unique
   departamento String
-  cpf          Int 
+  // cpf          Int 
 }
 
 model Chamado {
@@ -57,7 +57,7 @@ model Tecnico {
   nome String
   status String  
   habilidades String
-  cpf Int 
+  // cpf Int 
 }
 
 
