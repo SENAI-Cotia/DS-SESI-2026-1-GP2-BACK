@@ -6,32 +6,31 @@ const app = express();
 
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
+app.post("/users", async (req, res) => {
+    const { nome, senha, email, departamento, cpf } = req.body
 
-app.post("/login", async (req, res) => {
-  const {email, senha} = req.body
+    const regexMaiuscula = /[A-Z]/;
 
-  if (!email || !senha){
-    return res.status(401).json({error: "Informe Email e senha!"})
-  }
 
-  const user = await prisma.funcionario.findFirst({where: {email}})
-  
-  if(!user){ 
-  return res.status(404).json({error: "usuario não encontrado"})
-  }
 
-  if (!(await bcrypt.compare(senha, user.senha))){
-    return res.status(401).json({error: "Credenciais invalidas"})
-  }
+    if (senha.length < 8) {
+        return res.status(400).json({ erro: "A senha deve ter mais de 8" })
+    }
+    if (!regexMaiuscula.test(senha)) {
+        return res.status(400).json({ error: "A senha deve conter pelo menos uma letra maiúscula" })
+    }
 
-  return res.status(200).json("login realizado com sucesso!")
+
+    const senhaCryptografada = await bcrypt.hash(senha, 10)
+    const funcionario = await prisma.funcionario.create({
+        data: { nome, senha: senhaCryptografada, email, departamento}
+    })
+
+    return res.status(201).json(funcionario)
 })
 
 
 
 app.listen(3000, () => {
-  console.log(`Server is running on port ${3000}`);
+    console.log(`Server is running on port ${3000}`);
 });
