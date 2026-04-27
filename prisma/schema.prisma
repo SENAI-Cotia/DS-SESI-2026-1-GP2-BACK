@@ -15,9 +15,10 @@ datasource db {
 model Funcionario {
   id     Int           @id @default(autoincrement())
   nome   String   
-  senha  Int     
+  senha  String  
   email  String        @unique
   departamento String
+  cpf          Int 
 }
 
 model Chamado {
@@ -56,8 +57,7 @@ model Tecnico {
   nome String
   status String  
   habilidades String
-
-
+  cpf Int 
 }
 
 
