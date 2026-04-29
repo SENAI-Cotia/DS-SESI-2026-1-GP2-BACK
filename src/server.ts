@@ -1,14 +1,14 @@
 import express from "express";
 import prisma from "./lib/prisma";
-import bcrypt from "bcrypt"
-import { error } from "node:console";
+import bcrypt from "bcrypt";
+import 'dotenv/config';
 
 const app = express();
 
 app.use(express.json());
 
 app.post("/user", async (req, res) => {
-    const { nome, senha, email, departamento } = req.body
+    const { nome, senha, email, departamento, cpf } = req.body
 
     const regexMaiuscula = /[A-Z]/;
     const regexCaracterEspecial = /[^a-zA-Z0-9\s]/;
@@ -49,11 +49,12 @@ app.post("/user", async (req, res) => {
 
     const senhaCryptografada = await bcrypt.hash(senha, 10)
     const funcionario = await prisma.funcionario.create({
-        data: { nome, senha: senhaCryptografada, email, departamento }
+        data: { nome, senha: senhaCryptografada, email, departamento, cpf }
     })
 
     return res.status(201).json(funcionario)
 })
+
 
 
 

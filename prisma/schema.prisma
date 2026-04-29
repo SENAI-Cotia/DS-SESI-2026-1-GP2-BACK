@@ -52,11 +52,12 @@ model Comentario {
 }
 
 model Tecnico {
-  id          Int    @id @default(autoincrement())
-  nome        String
-  status      String
+  id  Int   @id  @default(autoincrement())
+  nome String
+  status String      // (disponivel, indisponivel)
   habilidades String
-  // cpf Int 
+  cpf String 
+  senha String
 }
 
 enum Status {
