@@ -13,58 +13,51 @@ datasource db {
 }
 
 model Funcionario {
-  id     Int           @id @default(autoincrement())
-  nome   String   
-  senha  String  
-  email  String        @unique
+  id           Int    @id @default(autoincrement())
+  nome         String
+  senha        String
+  email        String @unique
   departamento String
   // cpf          Int 
 }
 
 model Chamado {
-  id            Int       @id @default(autoincrement())
-  titulo        String
-  descricao     String
-  status        Status
-  prioridade    Prioridade
-  dataAbertura  DateTime  @default(now())
+  id             Int        @id @default(autoincrement())
+  titulo         String
+  descricao      String
+  status         Status
+  prioridade     Prioridade
+  dataAbertura   DateTime   @default(now())
   dataFechamento DateTime?
 
   categoriaId Int
-  categoria   Categoria @relation(fields: [categoriaId], references: [id])
+  categoria   Categoria    @relation(fields: [categoriaId], references: [id])
   comentarios Comentario[]
-  }
+}
 
-
-model Categoria{
-  id  Int  @id @default(autoincrement())
-  nome String 
+model Categoria {
+  id   Int    @id @default(autoincrement())
+  nome String
 
   chamados Chamado[]
 }
 
 model Comentario {
-  id   Int  @id    @default(autoincrement())
-  mensagem String  
-  data  DateTime  @default(now())
+  id       Int      @id @default(autoincrement())
+  mensagem String
+  data     DateTime @default(now())
 
-  chamadoId Int 
-  chamado  Chamado @relation(fields: [chamadoId], references: [id])
+  chamadoId Int
+  chamado   Chamado @relation(fields: [chamadoId], references: [id])
 }
 
 model Tecnico {
-  id  Int   @id  @default(autoincrement())
-  nome String
-  status String  
+  id          Int    @id @default(autoincrement())
+  nome        String
+  status      String
   habilidades String
   // cpf Int 
 }
-
-
-
-
-
-
 
 enum Status {
   ABERTO
