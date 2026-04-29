@@ -7,7 +7,7 @@ const app = express();
 
 app.use(express.json());
 
-app.post("/senha", async (req, res) => {
+app.post("/user", async (req, res) => {
     const { nome, senha, email, departamento } = req.body
 
     const regexMaiuscula = /[A-Z]/;
@@ -19,6 +19,12 @@ app.post("/senha", async (req, res) => {
     });
     const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+    const regexNomeCompleto = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:\s+[A-Za-zÀ-ÖØ-öø-ÿ]+)+$/;
+
+
+    if (!regexNomeCompleto.test(nome)) {
+        return res.status(400).json({ erro: "Digite o nome completo." });
+    }
     if (senha.length < 8) {
         return res.status(400).json({ erro: "A senha deve ter mais de 8 caracteres." })
     }
