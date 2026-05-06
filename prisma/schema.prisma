@@ -53,6 +53,7 @@ model Comentario {
 
 model Tecnico {
   id  Int   @id  @default(autoincrement())
+  email String @unique
   nome String
   status String      // (disponivel, indisponivel)
   habilidades String
