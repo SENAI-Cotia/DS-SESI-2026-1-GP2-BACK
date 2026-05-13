@@ -23,33 +23,16 @@ model Funcionario {
 
 model Chamado {
   id             Int        @id @default(autoincrement())
-  titulo         String
+  categoria      CategoriaProblema
   descricao      String
   status         Status
   prioridade     Prioridade
-  dataAbertura   DateTime   @default(now())
+  dataAbertura   DateTime?   @default(now())
   dataFechamento DateTime?
+  sala String
 
-  categoriaId Int
-  categoria   Categoria    @relation(fields: [categoriaId], references: [id])
-  comentarios Comentario[]
 }
 
-model Categoria {
-  id   Int    @id @default(autoincrement())
-  nome String
-
-  chamados Chamado[]
-}
-
-model Comentario {
-  id       Int      @id @default(autoincrement())
-  mensagem String
-  data     DateTime @default(now())
-
-  chamadoId Int
-  chamado   Chamado @relation(fields: [chamadoId], references: [id])
-}
 
 model Tecnico {
   id  Int   @id  @default(autoincrement())
@@ -77,4 +60,11 @@ enum Role {
   ADMIN
   FUNCIONARIO
   SUPORTE
+}
+
+enum CategoriaProblema {
+ INFORMATICA
+ PRODUCAO
+ ADMINITRATIVO
+
 }

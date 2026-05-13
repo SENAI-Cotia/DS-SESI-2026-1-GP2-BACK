@@ -12,6 +12,9 @@ router.get("/tecnicos", async (req, res) => {
         return res.status(500).json({ error: "Erro ao listar técnicos" });
     }
 });
+
+
+
 router.post("/cadastro", async (req, res) => {
     const { nome, senha, email, departamento, cpf } = req.body
 
@@ -22,6 +25,8 @@ router.post("/cadastro", async (req, res) => {
     const funcionarioExistente = await prisma.funcionario.findUnique({
         where: { email }
     });
+
+
     const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     const regexNomeCompleto = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:\s+[A-Za-zÀ-ÖØ-öø-ÿ]+)+$/;
@@ -86,49 +91,49 @@ router.post("/cadastro", async (req, res) => {
 
 router.post("/login", async (req, res) => {
     const { email, senha } = req.body
-    
-    
+
+
     if (!email || !senha) {
         return res.status(401).json({ error: "Informe Email e senha!" })
     }
-    
+
     const user = await prisma.funcionario.findFirst({ where: { email } })
-    
+
     if (!user) {
         return res.status(404).json({ error: "usuario não encontrado" })
     }
-    
+
     if (!(await bcrypt.compare(senha, user.senha))) {
         return res.status(401).json({ error: "Credenciais invalidas" })
     }
-    
+
     return res.status(200).json("login realizado com sucesso!")
 })
 
 // criando tecnico
 router.post("/tecnicos", async (req, res) => {
     try {
-        const { nome, senha, habilidades, status, cpf } = req.body
-        
-        if (!nome || !senha || !habilidades || !status || !cpf) {
+        const { nome, senha, habilidades, status, cpf, email } = req.body
+
+        if (!nome || !senha || !habilidades || !status || !cpf || !email) {
             return res.status(400).json({ "error": "Informe todos os campos" })
         }
-        
+
         // const funcionarioExistente = await prisma.funcionario.findUnique({
         //     where: { email }
         // });
         const senhaCryptografada = await bcrypt.hash(senha, 10)
-        
+
         const tecnico = await prisma.tecnico.create({
-            data: { nome, senha: senhaCryptografada, habilidades, status, cpf }
+            data: { nome, senha: senhaCryptografada, habilidades, status, cpf, email }
         })
-        
+
         return res.status(201).json(tecnico)
     } catch (error) {
         console.log(error)
         return res.status(400).json({ "error": "ocorreu um erro ao criar o tecnico" })
     }
-    
+
     // if (funcionarioExistente) {
     //     return res.status(400).json({ erro: "Este email já está cadastrado." });
     // }
