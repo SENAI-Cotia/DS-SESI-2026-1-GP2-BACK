@@ -1,10 +1,30 @@
 import { Router } from "express";
 import prisma from "../lib/prisma";
 import bcrypt from "bcrypt";
+import jwt from 'jsonwebtoken';
+
+const verificarToken = (req: any, res: any, next: any) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+        return res.status(401).json({ error: "Token não fornecido" });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    try {
+        jwt.verify(token, process.env.JWT_SECRET as string);
+        
+      
+        next();
+    } catch (err) {
+        return res.status(401).json({ error: "Token inválido ou expirado" });
+    }
+};
 
 const router = Router()
 // listando tecnico
-router.get("/tecnicos", async (req, res) => {
+router.get("/tecnicos",verificarToken, async (req, res) => {
     try {
         const tecnicos = await prisma.tecnico.findMany();
         return res.status(200).json(tecnicos);
@@ -14,6 +34,56 @@ router.get("/tecnicos", async (req, res) => {
 });
 
 
+
+
+router.post("/login", async (req, res) => {
+    try {
+        const { email, senha } = req.body;
+
+        // 1. Validar se os campos foram enviados
+        if (!email || !senha) {
+            return res.status(400).json({ error: "E-mail e senha são obrigatórios" });
+        }
+
+        // 2. Buscar o técnico no banco de dados pelo e-mail
+        const tecnico = await prisma.tecnico.findUnique({
+            where: { email }
+        });
+
+        // 3. Verificar se o técnico existe
+        if (!tecnico) {
+            return res.status(401).json({ error: "E-mail ou senha incorretos" });
+        }
+
+        // 4. Comparar a senha enviada com a senha criptografada no banco
+        const senhaValida = await bcrypt.compare(senha, tecnico.senha);
+
+        if (!senhaValida) {
+            return res.status(401).json({ error: "E-mail ou senha incorretos" });
+        }
+
+        // 5. Se chegou aqui, as credenciais estão certas. Geramos o Token!
+        const token = jwt.sign(
+            { id: tecnico.id, email: tecnico.email },
+            process.env.JWT_SECRET as string,
+            { expiresIn: '1d' } // O token vale por 24 horas
+        );
+
+        // 6. Retornamos o token e alguns dados do técnico (menos a senha!)
+        return res.json({
+            token,
+            tecnico: {
+                id: tecnico.id,
+                nome: tecnico.nome,
+                email: tecnico.email
+            }
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Erro interno no servidor" });
+    }
+});
 
 router.post("/cadastro", async (req, res) => {
     const { nome, senha, email, departamento, cpf } = req.body
@@ -68,27 +138,6 @@ router.post("/cadastro", async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 router.post("/login", async (req, res) => {
     const { email, senha } = req.body
 
@@ -113,33 +162,36 @@ router.post("/login", async (req, res) => {
 // criando tecnico
 router.post("/tecnicos", async (req, res) => {
     try {
-        const { nome, senha, habilidades, status, cpf, email } = req.body
+        const { nome, senha, habilidades, status, cpf, email } = req.body;
 
         if (!nome || !senha || !habilidades || !status || !cpf || !email) {
-            return res.status(400).json({ "error": "Informe todos os campos" })
+            return res.status(400).json({ "error": "Informe todos os campos" });
         }
 
-        // const funcionarioExistente = await prisma.funcionario.findUnique({
-        //     where: { email }
-        // });
-        const senhaCryptografada = await bcrypt.hash(senha, 10)
+        const senhaCryptografada = await bcrypt.hash(senha, 10);
 
         const tecnico = await prisma.tecnico.create({
             data: { nome, senha: senhaCryptografada, habilidades, status, cpf, email }
-        })
+        });
 
-        return res.status(201).json(tecnico)
+        const token = jwt.sign(
+            { id: tecnico.id, email: tecnico.email }, 
+            process.env.JWT_SECRET as string,
+            { expiresIn: '1d' }
+        );
+
+        return res.status(201).json({
+            tecnico,
+            token
+        });
+
     } catch (error) {
-        console.log(error)
-        return res.status(400).json({ "error": "ocorreu um erro ao criar o tecnico" })
+        console.log(error);
+        return res.status(400).json({ "error": "ocorreu um erro ao criar o tecnico" });
     }
+}); // Fecha a rota
 
-    // if (funcionarioExistente) {
-    //     return res.status(400).json({ erro: "Este email já está cadastrado." });
-    // }
-})
-
-router.delete("/tecnicos/:id", async (req, res) => {
+router.delete("/tecnicos/:id", verificarToken, async (req, res) => {
     const id = parseInt(req.params.id);
     try {
         await prisma.tecnico.delete({ where: { id } });
@@ -150,7 +202,7 @@ router.delete("/tecnicos/:id", async (req, res) => {
 });
 
 // editar técnico
-router.put("/tecnicos/:id", async (req, res) => {
+router.put("/tecnicos/:id", verificarToken, async (req, res) => {
     const id = parseInt(req.params.id);
     const { nome, habilidades, status, cpf } = req.body;
 
