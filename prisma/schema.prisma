@@ -30,6 +30,7 @@ model Chamado {
   dataAbertura   DateTime?   @default(now())
   dataFechamento DateTime?
   sala String
+  titulo String
 
 }
 

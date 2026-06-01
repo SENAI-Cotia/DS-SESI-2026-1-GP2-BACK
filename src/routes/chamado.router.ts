@@ -8,7 +8,7 @@ router.post("/novoChamado", async (req, res) => {
 
         console.log(req.body);
 
-        const { categoria, descricao, status, prioridade, sala } = req.body;
+        const { categoria, descricao, status, prioridade, sala, titulo } = req.body;
 
         const novoChamado = await prisma.chamado.create({
             data: {
@@ -16,7 +16,8 @@ router.post("/novoChamado", async (req, res) => {
                 descricao,
                 status,
                 prioridade,
-                sala
+                sala,
+                titulo
             }
         });
 
