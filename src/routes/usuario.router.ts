@@ -189,7 +189,7 @@ router.post("/tecnicos", async (req, res) => {
         console.log(error);
         return res.status(400).json({ "error": "ocorreu um erro ao criar o tecnico" });
     }
-}); // Fecha a rota
+}); 
 
 router.delete("/tecnicos/:id", verificarToken, async (req, res) => {
     const id = parseInt(req.params.id);
