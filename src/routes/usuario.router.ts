@@ -28,7 +28,7 @@ const verificarToken = (req: any, res: any, next: any) => {
 
 // cadastro funcionario
 router.post("/cadastroFuncionario", async (req, res) => {
-    console.log("REQUISIÇÃO RECEBIDA")  
+    console.log("REQUISIÇÃO RECEBIDA")
 
 
     const { nome, senha, departamento } = req.body
