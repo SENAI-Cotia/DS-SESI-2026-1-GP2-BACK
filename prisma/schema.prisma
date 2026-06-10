@@ -16,7 +16,7 @@ model Funcionario {
   id           Int    @id @default(autoincrement())
   nome         String
   senha        String
-  email        String @unique
+  // email        String @unique
   departamento String
   // cpf          Int 
   chamados     Chamado[]
