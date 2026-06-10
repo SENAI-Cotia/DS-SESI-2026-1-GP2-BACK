@@ -16,9 +16,10 @@ model Funcionario {
   id           Int    @id @default(autoincrement())
   nome         String
   senha        String
-  email        String @unique
+  // email        String @unique
   departamento String
   // cpf          Int 
+  chamados     Chamado[]
 }
 
 model Chamado {
@@ -31,7 +32,10 @@ model Chamado {
   dataFechamento DateTime?
   sala String
   titulo String
-
+  setor           String?
+  funcionarioId   Int?
+  
+  funcionario     Funcionario?   @relation(fields: [funcionarioId], references: [id])
 }
 
 
