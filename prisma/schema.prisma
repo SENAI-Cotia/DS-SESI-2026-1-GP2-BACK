@@ -13,8 +13,8 @@ datasource db {
 }
 
 model Funcionario {
-  id           Int    @id @default(autoincrement())
-  nome         String
+  id           Int       @id @default(autoincrement())
+  nome         String    @unique
   senha        String
   // email        String @unique
   departamento String
@@ -23,30 +23,29 @@ model Funcionario {
 }
 
 model Chamado {
-  id             Int        @id @default(autoincrement())
+  id             Int               @id @default(autoincrement())
   categoria      CategoriaProblema
   descricao      String
   status         Status
   prioridade     Prioridade
-  dataAbertura   DateTime?   @default(now())
+  dataAbertura   DateTime?         @default(now())
   dataFechamento DateTime?
-  sala String
-  titulo String
-  setor           String?
-  funcionarioId   Int?
-  
-  funcionario     Funcionario?   @relation(fields: [funcionarioId], references: [id])
+  sala           String
+  titulo         String
+  setor          String?
+  funcionarioId  Int?
+
+  funcionario Funcionario? @relation(fields: [funcionarioId], references: [id])
 }
 
-
 model Tecnico {
-  id  Int   @id  @default(autoincrement())
-  email String @unique
-  nome String
-  status String      // (disponivel, indisponivel)
+  id          Int    @id @default(autoincrement())
+  email       String @unique
+  nome        String
+  status      String // (disponivel, indisponivel)
   habilidades String
-  cpf String 
-  senha String
+  cpf         String
+  senha       String
 }
 
 enum Status {
@@ -68,8 +67,7 @@ enum Role {
 }
 
 enum CategoriaProblema {
- INFORMATICA
- PRODUCAO
- ADMINITRATIVO
-
+  INFORMATICA
+  PRODUCAO
+  ADMINITRATIVO
 }
