@@ -24,6 +24,18 @@ const verificarToken = (req: any, res: any, next: any) => {
         return res.status(401).json({ error: "Token inválido ou expirado" });
     }
 };
+//listagem
+router.get("/listarFuncionarios", async (req, res) => {
+    console.log("REQUISIÇÃO DE LISTAGEM RECEBIDA")
+
+    try {
+        const funcionarios = await prisma.funcionario.findMany()
+        return res.status(200).json(funcionarios)
+    } catch (erro) {
+        console.error(erro)
+        return res.status(500).json({ erro: "Erro ao listar os funcionários." })
+    }
+})
 
 
 // cadastro funcionario
@@ -46,6 +58,9 @@ router.post("/cadastroFuncionario", async (req, res) => {
 
     const regexNomeCompleto = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:\s+[A-Za-zÀ-ÖØ-öø-ÿ]+)+$/;
 
+    const funcionarioExistente = await prisma.funcionario.findFirst({
+        where: { nome: nome }
+    });
 
     if (!regexNomeCompleto.test(nome)) {
         return res.status(400).json({ erro: "Digite o nome completo." });
@@ -65,6 +80,11 @@ router.post("/cadastroFuncionario", async (req, res) => {
     if (!departamento) {
         return res.status(400).json({ error: "Campo obrigatorio" })
     }
+    if (funcionarioExistente) {
+        return res.status(400).json({ erro: "Este funcionário já está cadastrado." });
+    }
+
+
     const senhaCryptografada = await bcrypt.hash(senha, 10)
     const funcionario = await prisma.funcionario.create({
         data: {
@@ -77,160 +97,43 @@ router.post("/cadastroFuncionario", async (req, res) => {
     return res.status(201).json(funcionario)
 })
 
+//login funcionario
+
+router.post("/loginFuncionario", async (req, res) => {
+    console.log("REQUISIÇÃO DE LOGIN RECEBIDA")
+    
+    const { nome, senha } = req.body
+
+    // 1. Valida se os campos foram enviados
+    if (!nome || !senha) {
+        return res.status(400).json({ error: "Informe Nome e Senha!" })
+    }
+
+    const user = await prisma.funcionario.findFirst({ 
+        where: { nome: nome } 
+    })
 
 
+    // 3. Bloqueia se o usuário não existir
+    if (!user) {
+        return res.status(404).json({ error: "Usuário não encontrado" })
+    }
 
-// router.post("/loginFuncionario", async (req, res) => {
-//     const { email, senha } = req.body
+    // 4. Compara a senha digitada com a criptografada do banco
+    if (!(await bcrypt.compare(senha, user.senha))) {
+        return res.status(401).json({ error: "Credenciais inválidas" })
+    }
 
-
-//     if (!email || !senha) {
-//         return res.status(401).json({ error: "Informe Email e senha!" })
-//     }
-
-//     const user = await prisma.funcionario.findFirst({ where: { email } })
-
-//     if (!user) {
-//         return res.status(404).json({ error: "usuario não encontrado" })
-//     }
-
-//     if (!(await bcrypt.compare(senha, user.senha))) {
-//         return res.status(401).json({ error: "Credenciais invalidas" })
-//     }
-
-//     return res.status(200).json("login realizado com sucesso!")
-// })
-
-// // listando tecnico
-// router.get("/tecnicos", verificarToken, async (req, res) => {
-//     try {
-//         const tecnicos = await prisma.tecnico.findMany();
-//         return res.status(200).json(tecnicos);
-//     } catch (error) {
-//         return res.status(500).json({ error: "Erro ao listar técnicos" });
-//     }
-// });
-
-
-// router.post("/loginTecnico", async (req, res) => {
-//     try {
-//         const { email, senha } = req.body;
-
-//         // 1. Validar se os campos foram enviados
-//         if (!email || !senha) {
-//             return res.status(400).json({ error: "E-mail e senha são obrigatórios" });
-//         }
-
-//         // 2. Buscar o técnico no banco de dados pelo e-mail
-//         const tecnico = await prisma.tecnico.findUnique({
-//             where: { email }
-//         });
-
-//         // 3. Verificar se o técnico existe
-//         if (!tecnico) {
-//             return res.status(401).json({ error: "E-mail ou senha incorretos" });
-//         }
-
-//         // 4. Comparar a senha enviada com a senha criptografada no banco
-//         const senhaValida = await bcrypt.compare(senha, tecnico.senha);
-
-//         if (!senhaValida) {
-//             return res.status(401).json({ error: "E-mail ou senha incorretos" });
-//         }
-
-//         // 5. Se chegou aqui, as credenciais estão certas. Geramos o Token!
-//         const token = jwt.sign(
-//             { id: tecnico.id, email: tecnico.email },
-//             process.env.JWT_SECRET as string,
-//             { expiresIn: '1d' } // O token vale por 24 horas
-//         );
-
-//         // 6. Retornamos o token e alguns dados do técnico (menos a senha!)
-//         return res.json({
-//             token,
-//             tecnico: {
-//                 id: tecnico.id,
-//                 nome: tecnico.nome,
-//                 email: tecnico.email
-//             }
-//         });
-
-//     } catch (error) {
-//         console.error(error);
-//         return res.status(500).json({ error: "Erro interno no servidor" });
-//     }
-// });
-
-
-
-// // criando tecnico
-// router.post("/tecnicos", async (req, res) => {
-//     try {
-//         const { nome, senha, habilidades, status, cpf, email } = req.body;
-
-//         if (!nome || !senha || !habilidades || !status || !cpf || !email) {
-//             return res.status(400).json({ "error": "Informe todos os campos" });
-//         }
-
-//         const senhaCryptografada = await bcrypt.hash(senha, 10);
-
-//         const tecnico = await prisma.tecnico.create({
-//             data: { nome, senha: senhaCryptografada, habilidades, status, cpf, email }
-//         });
-
-//         const token = jwt.sign(
-//             { id: tecnico.id, email: tecnico.email },
-//             process.env.JWT_SECRET as string,
-//             { expiresIn: '1d' }
-//         );
-
-//         return res.status(201).json({
-//             tecnico,
-//             token
-//         });
-
-//     } catch (error) {
-//         console.log(error);
-//         return res.status(400).json({ "error": "ocorreu um erro ao criar o tecnico" });
-//     }
-// });
-
-// router.delete("/tecnicos/:id", verificarToken, async (req, res) => {
-//     const id = parseInt(req.params.id);
-//     try {
-//         await prisma.tecnico.delete({ where: { id } });
-//         return res.status(200).json({ mensagem: "Técnico deletado com sucesso!" });
-//     } catch (error) {
-//         return res.status(404).json({ mensagem: "Técnico não encontrado" });
-//     }
-// });
-
-// // editar técnico
-// router.put("/tecnicos/:id", verificarToken, async (req, res) => {
-//     const id = parseInt(req.params.id);
-//     const { nome, habilidades, status, cpf } = req.body;
-
-//     if (!nome || !habilidades || !status || !cpf) {
-//         return res.status(400).json({ error: "Informe nome, habilidades, status e cpf" });
-//     }
-//     try {
-//         const tecnicoExistente = await prisma.tecnico.findUnique({ where: { id } });
-
-//         if (!tecnicoExistente) {
-//             return res.status(404).json({ error: "Técnico não encontrado" });
-//         }
-//         const tecnicoAtualizado = await prisma.tecnico.update({
-//             where: { id },
-//             data: { nome, habilidades, status, cpf },
-//         });
-
-//         return res.status(200).json(tecnicoAtualizado);
-//     } catch (error) {
-//         console.log(error);
-//         return res.status(500).json({ error: "Erro ao atualizar técnico" });
-//     }
-// });
-
+    // 5. Retorna o sucesso e os dados do usuário (menos a senha)
+    return res.status(200).json({
+        mensagem: "Login realizado com sucesso!",
+        usuario: {
+            id: user.id,
+            nome: user.nome,
+            departamento: user.departamento
+        }
+    })
+})
 
 
 export default router
